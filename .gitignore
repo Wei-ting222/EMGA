@@ -1,0 +1,22 @@
+# 模型权重文件
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+
+# 整个权重目录直接忽略
+checkpoint/
+dataset/
+results/
+runs/
+output/
+logs/
+
+# Python缓存文件
+__pycache__/
+*.pyc
+.DS_Store
+*.zip
+*.tar
+*.gz
