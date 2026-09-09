@@ -39,6 +39,7 @@ parser.add_argument("--num_workers", type=int, default=1)
 parser.add_argument("--batch_size", type=int, default=4)
 #parser.add_argument("--learning_rate", type=int, default=0.003)
 parser.add_argument("--learning_rate", type=float, default=0.003)
+#parser.add_argument("--epochs", type=int, default=300)
 parser.add_argument("--epochs", type=int, default=1000)
 #parser.add_argument("--epochs", type=int, default=10)
 

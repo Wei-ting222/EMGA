@@ -17,14 +17,24 @@ from util.AverageMeter import RunningMetrics,ContourSimilarityCalculator
 from util.dataset_jin import CrackData
 dev = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-path = 'EMGANet/med_seg/pt/EMGANet.pt'   # the path of the model127\111\297/216/217
+#BUSI_WHU
+#path = 'EMGANet/med_seg/pt/EMGANet.pt'   # the path of the model127\111\297/216/217
+#path = '/media/ubuntu/Student/wt/runs/train/4/checkpoint_epoch_426.pt' 
+#path = '/media/ubuntu/Student/wt/EMGANet/checkpoint/EMGANet_WHU.pt'
+#path = '/media/ubuntu/Student/wt/runs/train/4/checkpoint_epoch_440.pt' 
+#path = '/media/ubuntu/Student/wt/runs/train/5/checkpoint_epoch_31.pt' 300epoch
+
+#BUSI
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI/checkpoint_epoch_696.pt' #1000epoch 
+path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1/checkpoint_epoch_265.pt' #300epoch
+
 model = torch.load(path,map_location={'cuda:0':'cuda:0'})
 
 
 print('===> Loading datasets')
 
 from util.dataset_jin import CrackData
-test_path = "EMGANet/Dataset/BUSI_WHU/test" # the path of validation
+test_path = "EMGANet/Dataset/BUSI/test" # the path of validation
 
 test_data = pd.DataFrame({'images': sorted(glob(os.path.join(test_path, "img") + "/*.bmp")),
               'masks': sorted(glob(os.path.join(test_path, "mask") + "/*.bmp"))})

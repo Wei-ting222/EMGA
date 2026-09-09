@@ -5,6 +5,7 @@ from util.MultiTverskyLoss import MultiTverskyLoss
 
 
 
+
 def hybrid_loss(predictions, target,device):
     "Calculating the loss"
     loss = 0
@@ -21,7 +22,6 @@ def hybrid_loss(predictions, target,device):
        # dice = lovasz_softmax(prediction, target)
         # dice=tv(prediction, target,device)
         
-        loss += bce + dice
+        loss += bce + dice 
 
     return loss
-

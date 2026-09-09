@@ -90,14 +90,14 @@ def init_seed(seed=777):
 
 def check_dirs():
     print("\n"+"-"*30+"Check Dirs"+"-"*30)
-    if not os.path.exists('./runs'):
-        os.makedirs('./med_seg-old/runs/train')
+    if not os.path.exists('./EMGANet/runs'):
+        os.makedirs('./EMGANet/runs/train')
       
-    file_names = os.listdir('./runs/train')
-    file_names = [int(i) for i in file_names] + [0]
+    file_names = os.listdir('./EMGANet/runs/train')
+    file_names = [int(i) for i in file_names if str(i).isdigit()] + [0]
     new_file_name = str(max(file_names) + 1)
 
-    save_path = './runs/train/' + new_file_name
+    save_path = './EMGANet/runs/train/' + new_file_name
     os.mkdir(save_path)
     
     print("checkpoints & results are saved at: {}".format(save_path))
