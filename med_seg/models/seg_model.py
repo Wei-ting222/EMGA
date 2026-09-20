@@ -17,6 +17,7 @@ from util.common import ScaleInOutput
 from models.backbone.groupmixformer import GroupMixFormer
 from models.block.ESAM import Edgenet
 from models.block.SKFusion import SKFusion
+from models.block.FrequencyAware import FrequencyAwareFeatureEnhancement
 from models.neck.EMCAD import EMCAD
 
 SwinTransformerV2=swin_transformer_v2_b(in_channels=3,
@@ -38,6 +39,16 @@ class Seg_Detection(nn.Module):
         self.GMA=GroupMixFormer(embedding_dims=[120,240,480,960],
                                 serial_depths=[8, 8, 12, 8], mlp_ratios=[2, 2, 4, 4],
                                 drop_path_rate=0.5)
+                                
+        # ============================================================
+        # Frequency-Aware Feature Enhancement Module
+        # 对最高层语义特征 f4 进行频域增强
+        # ============================================================
+        self.FAEM = FrequencyAwareFeatureEnhancement(
+            channels=960,
+            reduction=16
+        )
+        
         self.Edgenet=Edgenet()
         self.decoder = EMCAD(channels=[960,480,240,120], kernel_sizes=[1,3,5], 
                              expansion_factor=2, dw_parallel=True,
@@ -48,28 +59,63 @@ class Seg_Detection(nn.Module):
             self._init_weight(opt.pretrain)   # todo:这里预训练初始化和 hrnet主干网络的初始化有冲突，必须要改！
 
 
+        
     def forward(self, x):
         _, _, h_input, w_input = x.shape
         
-        # encoder
-        f1, f2, f3, f4 = self.GMA(x)  # feature_a_1: 输入图像a的最大输出特征图
-        
-        # edge and fusion
-        d4=self.Edgenet(f1,f2,f3,f4)
-        f4=self.fusion([d4,f4])
-        
-        # decoder1
-        # ms_feats = f1, f2, f3, f4  # 多尺度特征
-        # feature = self.neck(ms_feats)
-        
-        # decoder2
-        dec_outs = self.decoder(f4, [f3, f2, f1])
-        feature=dec_outs[3]
+        # ============================================================
+        # Encoder
+        # ============================================================
+        f1, f2, f3, f4 = self.GMA(x)# feature_a_1: 输入图像a的最大输出特征图
+    
+        # ============================================================
+        # Frequency-Aware Feature Enhancement
+        #
+        # 原始：
+        # f4
+        #
+        # 现在：
+        # f4 -> FAEM -> enhanced f4
+        # ============================================================
+        f4 = self.FAEM(f4)
+    
+        # ============================================================
+        # Edge enhancement
+        # ============================================================
+        d4 = self.Edgenet(
+            f1,
+            f2,
+            f3,
+            f4
+        )
+    
+        # ============================================================
+        # Semantic-edge fusion
+        # ============================================================
+        f4 = self.fusion(
+            [d4, f4]
+        )
+    
+        # ============================================================
+        # Decoder
+        # ============================================================
+        dec_outs = self.decoder(
+            f4,
+            [f3, f2, f1]
+        )
+    
+        feature = dec_outs[3]
+    
+        # ============================================================
+        # Segmentation head
+        # ============================================================
+        out = self.head_forward(
+            feature,
+            out_size=(h_input, w_input)
+        )
+    
+        return out       
 
-        # head
-        out = self.head_forward(feature , out_size=(h_input, w_input))
-
-        return out
 
 
 

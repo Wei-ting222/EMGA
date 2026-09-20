@@ -12,6 +12,7 @@ results/
 runs/
 output/
 logs/
+Dataset/
 
 # Python缓存文件
 __pycache__/
