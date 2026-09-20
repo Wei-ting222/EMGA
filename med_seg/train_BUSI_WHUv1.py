@@ -37,9 +37,11 @@ parser.add_argument("--input_size", type=int, default=256)
 
 parser.add_argument("--num_workers", type=int, default=1)
 parser.add_argument("--batch_size", type=int, default=4)
-parser.add_argument("--learning_rate", type=int, default=0.003)
-#parser.add_argument("--epochs", type=int, default=1000)
-parser.add_argument("--epochs", type=int, default=300)
+#parser.add_argument("--learning_rate", type=int, default=0.003)
+parser.add_argument("--learning_rate", type=float, default=0.003)
+#parser.add_argument("--epochs", type=int, default=300)
+parser.add_argument("--epochs", type=int, default=1000)
+#parser.add_argument("--epochs", type=int, default=10)
 
 opt = parser.parse_args()
 # _, metadata = get_parser_with_args()
@@ -63,9 +65,9 @@ seed_torch(seed=123)
 
 from dataset import CrackData
 print('===> Loading datasets')
-train_path = "EMGANet/Dataset/BUSI/train"
-val_path = "EMGANet/Dataset/BUSI/val"
-test_path =  "EMGANet/Dataset/BUSI/test"
+train_path = "EMGANet/Dataset/BUSI_WHU/train"
+val_path = "EMGANet/Dataset/BUSI_WHU/val"
+test_path =  "EMGANet/Dataset/BUSI_WHU/test"
 
 train_data = pd.DataFrame({'images': sorted(glob(os.path.join(train_path, "img") + "/*.bmp")),
               'masks': sorted(glob(os.path.join(train_path, "mask") + "/*.bmp"))})
@@ -242,9 +244,8 @@ for epoch in range(opt.epochs):
         #      (mean_val_metrics['recall_1'] > best_metrics['recall_1'])
         #      or
         #      (mean_val_metrics['F1_1'] > best_metrics['F1_1'])):
-        if mean_val_metrics['F1_1'] > best_metrics['F1_1']:                      
+        if mean_val_metrics['F1_1'] > best_metrics['F1_1']:                         
             # Insert training and epoch information to metadata dictionary
-            print(f"[SAVE] epoch {epoch}: val F1_1={mean_val_metrics['F1_1']:.4f} val mIoU={mean_val_metrics['Mean_IoU']:.4f}")
             logging.info('updata the model')
             # metadata['validation_metrics'] = mean_val_metrics
 
@@ -268,3 +269,6 @@ for epoch in range(opt.epochs):
         print('An epoch finished.')
 
 print('Done!')
+
+
+

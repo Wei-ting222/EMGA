@@ -6,6 +6,7 @@ import math
 from timm.models.helpers import named_apply
 from models.neck.SCN import AlignedModule,AlignedModulev2PoolingAtten
 from models.block.Drop import DropBlock
+#from models.block.carafe import CARAFE   # ③ 内容感知上采样，替换固定 Upsample
 
 def gcd(a, b):
     while b:
@@ -193,7 +194,10 @@ class EUCB(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.up_dwc = nn.Sequential(
+            # ③ 原 nn.Upsample(scale_factor=2) 固定双线性上采样 -> CARAFE 内容感知上采样
             nn.Upsample(scale_factor=2),
+            
+            #CARAFE(self.in_channels, kernel_size=5, up_factor=2),
             nn.Conv2d(self.in_channels, self.in_channels, kernel_size=kernel_size, stride=stride, padding=kernel_size//2, groups=self.in_channels, bias=False),
 	        nn.BatchNorm2d(self.in_channels),
             act_layer(activation, inplace=True)

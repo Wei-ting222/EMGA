@@ -2,9 +2,12 @@ import datetime
 import torch
 from sklearn.metrics import precision_recall_fscore_support as prfs
 from util.parser import get_parser_with_args
-from util.helpers import (get_criterion,
-                           initialize_metrics, get_mean_metrics,
+
+                           
+from util.helpers import (initialize_metrics, get_mean_metrics,
                            set_metrics)
+from util.losses import hybrid_loss      # 新增    
+
 import os
 import logging
 import json
@@ -37,7 +40,7 @@ parser.add_argument("--input_size", type=int, default=256)
 
 parser.add_argument("--num_workers", type=int, default=1)
 parser.add_argument("--batch_size", type=int, default=4)
-parser.add_argument("--learning_rate", type=int, default=0.003)
+parser.add_argument("--learning_rate", type=float, default=0.003)   #将原本的int改为float
 parser.add_argument("--epochs", type=int, default=1000)
 
 opt = parser.parse_args()
@@ -58,7 +61,9 @@ def seed_torch(seed):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-seed_torch(seed=666)
+#seed_torch(seed=666)
+
+seed_torch(seed=123)
 
 from dataset import CrackData
 print('===> Loading datasets')
@@ -113,7 +118,7 @@ model.load_state_dict(OrderedDict(model_dict), strict=False)
 model = model.to(device)
 
 print("load weight~~~~~~~~~~~~~~~~~~~~~~~~~")
-criterion = get_criterion(opt)
+#criterion = get_criterion(opt)
 optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate ,weight_decay=0.001) # Be careful when you adjust learning rate, you can refer to the linear scaling rule
 scheduler = CosOneCycle(optimizer, max_lr=opt.learning_rate, epochs=opt.epochs, up_rate=0)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
@@ -132,6 +137,11 @@ scale = ScaleInOutput(opt.input_size)
 for epoch in range(opt.epochs):
     train_metrics = initialize_metrics()
     val_metrics = initialize_metrics()
+    
+    #bd_lambda = 0.0 if epoch < 50 else 0.25
+    bd_lambda = 0.0 
+    print(f'[TRAIN INFO] Epoch:{epoch}, boundary_loss lambda = {bd_lambda}')
+    
     """
     Begin Training
     """
@@ -166,7 +176,9 @@ for epoch in range(opt.epochs):
  
         # cd_preds=(cd_preds, )
  
-        cd_loss = criterion(cd_preds, labels,device)
+        #cd_loss = criterion(cd_preds, labels,device)
+        
+        cd_loss = hybrid_loss(cd_preds, labels, device, bd_lambda=bd_lambda)
         
         
         loss = cd_loss
@@ -216,7 +228,8 @@ for epoch in range(opt.epochs):
             # cd_preds=(cd_preds, )
            
           
-            cd_loss = criterion(cd_preds, labels,device)
+            #cd_loss = criterion(cd_preds, labels,device)
+            cd_loss = hybrid_loss(cd_preds, labels, device, bd_lambda=bd_lambda)
           
 
             cd_preds = cd_preds[-1]
@@ -232,7 +245,9 @@ for epoch in range(opt.epochs):
             # clear batch variables from memory
             del batch_img, labels
 
-        val_avg_loss = 1    # 计算验证集平均损失
+        #val_avg_loss = 1    # 计算验证集平均损失
+        val_avg_loss = total_val_loss / len(val_loader)
+
         mean_val_metrics = val_running_metrics.get_scores()
         logging.info("EPOCH {} VALIDATION METRICS".format(epoch)+str(mean_val_metrics))
        
@@ -241,7 +256,8 @@ for epoch in range(opt.epochs):
         #      (mean_val_metrics['recall_1'] > best_metrics['recall_1'])
         #      or
         #      (mean_val_metrics['F1_1'] > best_metrics['F1_1'])):
-        if mean_train_metrics['F1_1'] > best_metrics['F1_1']:                         
+        #if mean_train_metrics['F1_1'] > best_metrics['F1_1']:   before
+        if mean_val_metrics['F1_1'] > best_metrics['F1_1']:                     
             # Insert training and epoch information to metadata dictionary
             logging.info('updata the model')
             # metadata['validation_metrics'] = mean_val_metrics
@@ -254,11 +270,13 @@ for epoch in range(opt.epochs):
                 # json.dump(metadata, fout)
                  torch.save(model, save_path+'/checkpoint_epoch_'+str(epoch)+'.pt')
 
-            best_metrics = mean_train_metrics
+            #best_metrics = mean_train_metrics  before
+            best_metrics = mean_val_metrics  
             save_result.show(p=mean_train_metrics['precision_1'],r=mean_train_metrics['recall_1'],
                              f1=mean_train_metrics['F1_1'],miou=mean_train_metrics['Mean_IoU'],
                              oa=mean_train_metrics['Overall_Acc'],refer_metric=mean_train_metrics['Mean_IoU'],
-                             best_metric=1,
+                             #best_metric=1,
+                             best_metric=mean_val_metrics['Mean_IoU'],
                              train_avg_loss=train_avg_loss,val_avg_loss=val_avg_loss,
                              lr=opt.learning_rate,epoch=epoch)
 

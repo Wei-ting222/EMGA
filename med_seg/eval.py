@@ -22,11 +22,32 @@ dev = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #path = '/media/ubuntu/Student/wt/runs/train/4/checkpoint_epoch_426.pt' 
 #path = '/media/ubuntu/Student/wt/EMGANet/checkpoint/EMGANet_WHU.pt'
 #path = '/media/ubuntu/Student/wt/runs/train/4/checkpoint_epoch_440.pt' 
-#path = '/media/ubuntu/Student/wt/runs/train/5/checkpoint_epoch_31.pt' 300epoch
+
+#path = '/media/ubuntu/Student/wt/runs/train/300epochs_WHU/checkpoint_epoch_31.pt' #300epoch
+
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_WHU/checkpoint_epoch_211.pt' #代码改进后1000epochsv1
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_WHUv2/checkpoint_epoch_320.pt' #代码改进后1000epochsv2
+
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_WHU_bd/checkpoint_epoch_544.pt' #1000epochs 只bd
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_WHU_ca/checkpoint_epoch_592.pt' #1000epochs 只ca
+
+#path  = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_WHU_0.25bd/checkpoint_epoch_373.pt'   0.25
 
 #BUSI
-#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI/checkpoint_epoch_696.pt' #1000epoch 
-path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1/checkpoint_epoch_265.pt' #300epoch
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI/checkpoint_epoch_696.pt' #1000epoch 用之前跑的1000轮得到的权重试试
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1/checkpoint_epoch_265.pt' #300epoch
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_base/checkpoint_epoch_552.pt'   #1000epochs_base
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_ca_bd/checkpoint_epoch_858.pt'   #1000epoch 改进后得到的权重 ca+bd
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_bd/checkpoint_epoch_608.pt'  #1000epochs 只bd
+
+#path = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_BUSI_ca/checkpoint_epoch_412.pt' #1000epochs 只ca
+
+#Dataset_B
+#path  = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_Dataset_B/checkpoint_epoch_288.pt'  #1000epoch 作为基线的 train-> val int->float 
+path  = '/media/ubuntu/Student/wt/EMGANet/runs/train/1000epochs_Dataset_B_0.25bd/checkpoint_epoch_560.pt'  #300epoch 论文原配置
+
+
+
 
 model = torch.load(path,map_location={'cuda:0':'cuda:0'})
 
@@ -34,7 +55,15 @@ model = torch.load(path,map_location={'cuda:0':'cuda:0'})
 print('===> Loading datasets')
 
 from util.dataset_jin import CrackData
-test_path = "EMGANet/Dataset/BUSI/test" # the path of validation
+
+#####测试集路径要改一下
+
+#test_path = "EMGANet/Dataset/BUSI_WHU/test" # the path of validation
+
+#test_path = "EMGANet/Dataset/BUSI/test"
+
+test_path = "EMGANet/Dataset/Dataset_B/test"
+
 
 test_data = pd.DataFrame({'images': sorted(glob(os.path.join(test_path, "img") + "/*.bmp")),
               'masks': sorted(glob(os.path.join(test_path, "mask") + "/*.bmp"))})
